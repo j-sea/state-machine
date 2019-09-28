@@ -122,11 +122,12 @@ In this project, our state machine is set up to allow access to **two functions*
 
 ```JavaScript
 var stateMachine = {
-    new: function () {
+    new: function (customSwitchStateFunc) {
         var privateFeatures = {
             stateObjects: {},
             sharedData: {},
             currentStateIdentifier: undefined,
+            customSwitchState: customSwitchStateFunc,
             
             switchState: function (nextStateIdentifier) {
                 if (!privateFeatures.stateObjects.hasOwnProperty(nextStateIdentifier)) throw new Error('Next state identifier does not exist in state machine');
@@ -135,7 +136,12 @@ var stateMachine = {
                     privateFeatures.stateObjects[privateFeatures.currentStateIdentifier].unloadState(nextStateIdentifier, privateFeatures.sharedData);
                 }
 
-                privateFeatures.stateObjects[nextState].loadState(privateFeatures.currentStateIdentifier, privateFeatures.switchState, privateFeatures.sharedData);
+                if (privateFeatures.customSwitchState === undefined) {
+                    privateFeatures.stateObjects[nextState].loadState(privateFeatures.currentStateIdentifier, privateFeatures.switchState, privateFeatures.sharedData);
+                }
+                else {
+                    privateFeatures.stateObjects[nextState].loadState(privateFeatures.currentStateIdentifier, privateFeatures.customSwitchState, privateFeatures.sharedData);
+                }
                 
                 privateFeatures.currentStateIdentifier = nextStateIdentifier;
             }
