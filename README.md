@@ -20,7 +20,7 @@ I have a few goals with this project:
 ## How does it work?
 Okay. Remember when I equated state machines to _flowcharts_? Let's think about how a flowchart works. For our purposes, let's explore a user flow of a website registration process.
 
-![Registration User Flow](https://placekitten.org/200x200 "Registration User Flow")
+![Registration User Flow](registration-overview.png "Registration User Flow")
 
 Imagine the diamonds as _actions_ taken by the user and squares as _pages_ the user sees.
 
