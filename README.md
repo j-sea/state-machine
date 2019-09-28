@@ -59,7 +59,7 @@ So! Now you have an inkling of the benefits we get from states, but how do we ac
 That comes from how we set up the **States** and the **State Machine**.
 
 ## How it all works, finally!
-Let's continue our train of thought with _states_.
+Let's continue our train of thought with _states_ and then move into _state machines_.
 
 ### How states work...
 In this project, each state is set up as an **object** with **three functions** that our _state machine_ will utilize to make everything Just Work™:
@@ -77,7 +77,7 @@ var state = {
     },
     loadState: function (previousState, switchStateFunc, sharedData) {
         // 'previousState' can be used to conditionally load things based on which state we came from
-        // 'switchStateFunc(stateName)' is a function that can be called to switch to the state associated with the name
+        // 'switchStateFunc(stateIdentifier)' is a function that can be called to switch to the state associated with the identifier
         // 'sharedData' is just an object that can have properties added to it which will persist between state switches
 
         // Conduct things like:
@@ -116,3 +116,46 @@ Also note that `sharedData` is a compromise for sharing data between states. My 
 To learn more about why I consider these as cons and global variables as unwanted, refer to this additional video explanation from Coursera about [Information Hiding \[6m 04s\]](https://www.coursera.org/lecture/object-oriented-design/1-3-3-information-hiding-OwrqD). Note that at the 3m 02s mark, they start talking about access modifiers which aren't available in JavaScript. The only way to truly hide information in JavaScript is through Closure Scopes.
 
 Without closures, we would just set common guidelines in place for each developer to adhere to so that others don't touch variables they aren't supposed to (like in Python where all information is accessible by everyone else). However, developers that don't get the memo may still end up touching data they're not supposed to, introducing a difficult-to-resolve bug as a result. You can learn about this on Coursera with their video on [Conceptual Integrity \[5m 22s\]](https://www.coursera.org/lecture/object-oriented-design/1-3-4-conceptual-integrity-AUNUT). I highly recommend this video just to get an idea about how teams can coordinate with each other.
+
+### How state machines work...
+In this project, our state machine is set up to allow access to **two functions**: one for adding states to it, and another for starting the machine with a specific state.
+
+```JavaScript
+var stateMachine = {
+    new: function () {
+        var privateFeatures = {
+            stateObjects: {},
+            sharedData: {},
+            currentStateIdentifier: undefined,
+            
+            switchState: function (nextStateIdentifier) {
+                if (!privateFeatures.stateObjects.hasOwnProperty(nextStateIdentifier)) throw new Error('Next state identifier does not exist in state machine');
+                
+                if (privateFeatures.currentStateIdentifier !== undefined) {
+                    privateFeatures.stateObjects[privateFeatures.currentStateIdentifier].unloadState(nextStateIdentifier, privateFeatures.sharedData);
+                }
+
+                privateFeatures.stateObjects[nextState].loadState(privateFeatures.currentStateIdentifier, privateFeatures.switchState, privateFeatures.sharedData);
+                
+                privateFeatures.currentStateIdentifier = nextStateIdentifier;
+            }
+        };
+
+        var publicFeatures = {
+            addState: function (stateIdentifier, stateObject) {
+                if (privateFeatures.stateObjects.hasOwnProperty(stateIdentifier)) throw new Error('State identifier already exists in state machine');
+                
+                stateObjects[stateIdentifier] = stateObject;
+                stateObject.initialize(privateFeatures.sharedData);
+            },
+            startWithState: function (startingStateIdentifier) {
+                if (!privateFeatures.stateObjects.hasOwnProperty(startingStateIdentifier)) throw new Error('Starting state identifier does not exist in state machine');
+                
+                privateFeatures.switchState(startingStateIdentifier);
+            },
+        };
+
+        return publicFeatures;
+    }
+};
+```
