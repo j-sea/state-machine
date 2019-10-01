@@ -46,7 +46,7 @@ The main benefits of states are:
 - Only one state is active at a time.
 - They take care of themselves and only themselves.
 
-These points are important for separating code concerns which will save time and headaches in the future for you and your teammates. It also has the added benefit of reducing the amount of merge conflicts you have to resolve when using a version control like Git, especially if you separate the states into different files.
+These points are important for separating code concerns which will save time and headaches in the future for you and your teammates. It also has the added benefit of reducing the amount of merge conflicts you have to resolve when using a version control like Git, moreso if you separate the states into different files.
 
 For more information about separation of code concerns, check out these extremely-well-designed and free video explanations from Coursera on [Loose Coupling & High Cohesion \[6m 36s\]](https://www.coursera.org/lecture/object-oriented-design/1-3-1-coupling-and-cohesion-q8wGt) and [Separation of Concerns \[9m 05s\]](https://www.coursera.org/lecture/object-oriented-design/1-3-2-separation-of-concerns-nBqPZ). (When they talk about "Classes", imagine them as like the Constructor Functions we learned about.) I highly recommend these videos. This is something I was required to learn when I took Computer Science in college, but it wasn't explained as well as these 16 minutes explained it.
 
