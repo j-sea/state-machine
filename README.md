@@ -77,7 +77,7 @@ var state = {
     },
     loadState: function (previousState, switchStateFunc, sharedData) {
         // 'previousState' can be used to conditionally load things based on which state we came from
-        // 'switchStateFunc(stateIdentifier)' is a function that can be called to switch to the state associated with the identifier
+        // 'switchStateFunc(stateIdentifier)' is a function that can be called to switch to the state associated with the identifier one time (it becomes invalid after use so a reference of it can't be stored for switching states at any time, but a new one-use function is provided every time 'loadState' is run)
         // 'sharedData' is just an object that can have properties added to it which will persist between state switches
 
         // Conduct things like:
@@ -118,7 +118,7 @@ To learn more about why I consider these as cons and global variables as unwante
 Without closures, we would just set common guidelines in place for each developer to adhere to so that others don't touch variables they aren't supposed to (like in Python where all information is accessible by everyone else). However, developers that don't get the memo may still end up touching data they're not supposed to, introducing a difficult-to-resolve bug as a result. You can learn about this on Coursera with their video on [Conceptual Integrity \[5m 22s\]](https://www.coursera.org/lecture/object-oriented-design/1-3-4-conceptual-integrity-AUNUT). I highly recommend this video just to get an idea about how teams can coordinate with each other.
 
 ### How state machines work...
-In this project, our state machine is set up to allow access to **two functions**: one for adding states to it, and another for starting the machine with a specific state.
+In this project, our state machine is set up using Closure Scopes to allow access to only **two functions**: one for adding states to it, and another for switching the machine to a new state.
 
 ```JavaScript
 var stateMachine = {
@@ -127,24 +127,6 @@ var stateMachine = {
             stateObjects: {},
             sharedData: {},
             currentStateIdentifier: undefined,
-            customSwitchState: customSwitchStateFunc,
-            
-            switchState: function (nextStateIdentifier) {
-                if (!privateFeatures.stateObjects.hasOwnProperty(nextStateIdentifier)) throw new Error('Next state identifier does not exist in state machine');
-                
-                if (privateFeatures.currentStateIdentifier !== undefined) {
-                    privateFeatures.stateObjects[privateFeatures.currentStateIdentifier].unloadState(nextStateIdentifier, privateFeatures.sharedData);
-                }
-
-                if (privateFeatures.customSwitchState === undefined) {
-                    privateFeatures.stateObjects[nextState].loadState(privateFeatures.currentStateIdentifier, privateFeatures.switchState, privateFeatures.sharedData);
-                }
-                else {
-                    privateFeatures.stateObjects[nextState].loadState(privateFeatures.currentStateIdentifier, privateFeatures.customSwitchState, privateFeatures.sharedData);
-                }
-                
-                privateFeatures.currentStateIdentifier = nextStateIdentifier;
-            }
         };
 
         var publicFeatures = {
@@ -154,10 +136,31 @@ var stateMachine = {
                 stateObjects[stateIdentifier] = stateObject;
                 stateObject.initialize(privateFeatures.sharedData);
             },
-            startWithState: function (startingStateIdentifier) {
-                if (!privateFeatures.stateObjects.hasOwnProperty(startingStateIdentifier)) throw new Error('Starting state identifier does not exist in state machine');
+            switchState: function (nextStateIdentifier) {
+                if (!privateFeatures.stateObjects.hasOwnProperty(nextStateIdentifier)) throw new Error('Next state identifier does not exist in state machine');
                 
-                privateFeatures.switchState(startingStateIdentifier);
+                if (privateFeatures.currentStateIdentifier !== undefined) {
+                    privateFeatures.stateObjects[privateFeatures.currentStateIdentifier].unloadState(nextStateIdentifier, privateFeatures.sharedData);
+                }
+
+                privateFeatures.stateObjects[nextState].loadState(
+                    privateFeatures.currentStateIdentifier,
+                    (function () {
+                        var used = false;
+                        return function (willBeNextStateIdentifier) {
+                            if (!used) {
+                                privateFeatures.switchState(willBeNextStateIdentifier);
+                                used = true;
+                            }
+                            else {
+                                throw new Error('You aren\'t allowed to switch states multiple times during the span of one state\'s loaded-in time!');
+                            }
+                        }
+                    })(),
+                    privateFeatures.sharedData
+                );
+                
+                privateFeatures.currentStateIdentifier = nextStateIdentifier;
             },
         };
 
